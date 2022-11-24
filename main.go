@@ -4,12 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
+	//"io/ioutil"
+
+	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	policyv1 "github.com/cerbos/cerbos/api/genpb/cerbos/policy/v1"
 	"github.com/cerbos/cerbos/client"
+
+	cerbos "github.com/cerbos/cerbos/client"
+
 	yaml "github.com/goccy/go-yaml"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -149,6 +156,7 @@ type PolicyKeyResponse struct {
 }
 
 func (h *configHandler) createPolicy(w http.ResponseWriter, req *http.Request) {
+	log.Println("called to create policy")
 	w.Header().Set("Content-Type", "application/json")
 
 	var params CreatePolicyPayload
@@ -338,8 +346,80 @@ func main() {
 			http.Error(w, fmt.Sprintf("Method not supported: %s", req.Method), http.StatusMethodNotAllowed)
 		}
 	})
-	http.HandleFunc("/validate", h.validatePolicy)
+	http.HandleFunc("/validate", h.CerbosCheck)
 	http.HandleFunc("/auditlog", h.getAuditLog)
+	//http.HandleFunc("/user", h.CerbosCheck)
 
 	http.ListenAndServe(":8090", nil)
+}
+
+//func (h *configHandler) useradmin(w http.ResponseWriter, r *http.Request) {
+//	body, err := ioutil.ReadAll(r.Body)
+
+//	if err != nil {
+//	log.Fatal(err)
+//}
+//var usr Usr
+//json.Unmarshal(body, &usr)
+//CerbosCheck(usr.Name)
+
+//if usr.Name == "user10" {
+//var role string = "admin"
+//fmt.Println("user1 admin is admin - allowed)")
+
+//	cerbosCheck(usr.Name, role)
+//	fmt.Println("user1 admin is admin - allowed)")
+
+//} else if usr.Name == "user2" {
+//var role string = "user"
+//fmt.Println("Deny - not an admin")
+//	cerbosCheck(usr.Name, role)
+//	fmt.Println("Deny - not an admin")
+//} else {
+//	fmt.Println("Deny - not an admin")
+//}
+
+// }
+//type Usr struct {
+//Name string `json:"name"`
+//}
+
+func (h *configHandler) CerbosCheck(w http.ResponseWriter, r *http.Request) {
+	//	w.Header().Set("Content-Type", "application/json")
+	//body, err := ioutil.ReadAll(r.Body)
+
+	//if err != nil {
+	//	log.Fatal(err)
+	//	}
+	//var usr Usr
+	//json.Unmarshal(body, &usr)
+	//_ = json.NewDecoder(r.Body).Decode(&usr)
+	//json.NewEncoder(w).Encode(usr)
+
+	//c, err := client.NewAdminClientWithCredentials(h.host, username, password, client.WithPlaintext())
+	//if err != nil {
+	//	http.Error(w, err.Error(), http.StatusInternalServerError)
+	//	return
+	//}
+	log.Printf("started cerbos check")
+	//fmt.Println("anila")
+	c, err := cerbos.New("localhost:3592", cerbos.WithPlaintext())
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
+	}
+	allowed, err := c.IsAllowed(
+		context.TODO(),
+		cerbos.NewPrincipal("user10","admin"),
+		cerbos.NewResource("linorp", "new"),
+		"read",
+	)
+	if err != nil {
+		log.Fatalf("Failed to check permission: %v", err)
+	}
+	//json.NewEncoder(w).Encode(allowed)
+
+	log.Printf("Is user allowed to view contact: %t", allowed)
+	//
+	// fmt.Printf("Is user allowed to view contact: %t", allowed)*/
+	//w.WriteHeader(http.StatusOK)
 }

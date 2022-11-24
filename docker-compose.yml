@@ -12,12 +12,12 @@ services:
       - 3592:3592
       - 3593:3593
 
-  admin-api:
-    container_name: admin-api
-    build: .
-    environment:
-      - CERBOS_HOST=cerbos
-    ports:
-      - 8090:8090
-    depends_on:
-      - cerbos
+  # admin-api:
+  #   container_name: admin-api
+  #   build: .
+  #   environment:
+  #     - CERBOS_HOST=cerbos
+  #   ports:
+  #     - 8090:8090
+  #   depends_on:
+  #     - cerbos
